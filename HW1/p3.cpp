@@ -123,7 +123,7 @@ void solve(){
         debug(a, k);
         // (idx - 1) - (k + 1) + 1
         ll idx = upper_bound(a.begin()+k+1, a.end(), k, greater<ll>()) - a.begin();
-        if(dp[k] > k * (k - 1LL) + (idx - 1LL - k) * k + dp[n] - dp[idx-1]){
+        if(dp[k] > k * (idx - 2LL)  + dp[n] - dp[idx-1]){
             cout << "No" << endl;
             return;
         }
@@ -146,7 +146,7 @@ void solve(){
     //     vector<int> tmp;
     //     merge(a.begin(), a.begin()+(sz-1-a[sz-1]), a.begin()+(sz-1-a[sz-1]), a.end()-1, back_inserter(tmp));
     //     a = tmp;
-    //     debug(a);
+    //     debug(a);+ (idx - 2LL) * k
     // }
     
 
