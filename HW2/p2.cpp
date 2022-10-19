@@ -76,8 +76,69 @@ const ll MAXN = 100005;
 
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
+vector<vector<int>> adj;
+vector<vector<int>> p;
+vector<int> d;
+
+void dfs(int cur, int par, int dep){
+    d[cur] = dep;
+    p[cur][0] = par;
+    for(auto i: adj[cur]){
+        if(i != par){
+            dfs(i, cur, dep+1);
+        }
+    }
+}
+
+int lca(int x, int y){
+    if(d[x] > d[y]) swap(x, y);
+    if(d[x] != d[y]){
+        int diff = d[y] - d[x];
+        for(int i=0;i<20;i++){
+            if(diff & 1) y = p[y][i];
+            diff >>= 1;
+        }
+    }
+    if(x == y) return x;
+    for(int i=19;i>=0;i--){
+        if(p[x][i] != p[y][i]){
+            x = p[x][i];
+            y = p[y][i];
+        }
+    }
+
+    return p[x][0];
+}
+
+
 void solve(){
-    
+    int n;
+    cin >> n;
+    adj.resize(n+1);
+    p.resize(n+1, vector<int>(20, 0));
+    d.resize(n+1);
+    int u, v;
+    for(int i=0;i<n-1;i++){
+        cin >> u >> v;
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
+    dfs(1, 0, 1);
+    for(int i=1;i<20;i++){
+        for(int j=1;j<=n;j++){
+            p[j][i] = p[p[j][i-1]][i-1];
+        }
+    }
+    int t;
+    cin >> t;
+    while(t--){
+        cin >> u >> v;
+        debug(lca(u, v));
+        if(u == v) {cout << 0 << endl; continue;}
+        int ans = d[u] + d[v] - 2 * d[lca(u, v)];
+        cout << ans << endl;
+    }
+
 }
 
 /********** Good Luck :) **********/
@@ -85,7 +146,7 @@ int main () {
     TIME(main);
     IOS();
     int t = 1;
-    cin >> t;
+    // cin >> t;
     while(t--){
         solve();
     }

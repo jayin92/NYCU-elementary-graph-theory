@@ -76,7 +76,140 @@ const ll MAXN = 100005;
 
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
+vector<int> deg;
+vector<vector<int>> adj;
+vector<bool> vis;
+vector<vector<int>> joint_end;
+
+
+void dfs(int par, int cur, int dep){
+    debug(par, cur);
+    vis[cur] = true;
+    if(deg[cur] == 1){
+        joint_end[par].pb(dep);
+        return;
+    } else if(deg[cur] == 3){
+        for(auto i: adj[cur]){
+            if(!vis[i]){
+                dfs(cur, i, 1);
+            }
+        }
+    } else if(deg[cur] == 2){
+        for(auto i: adj[cur]){
+            if(!vis[i]){
+                dfs(par, i, dep+1);
+            }
+        }
+    }
+}
+
+void dfs_order(vector<int>& order, int start, int cur, int end){
+    vis[cur] = true;
+    if(cur == end){
+        return;
+    }
+    if(deg[cur] == 3 and cur != start){
+        order.push_back(cur);
+    }
+    for(auto i: adj[cur]){
+        if(!vis[i]){
+            dfs_order(order, start, i, end);
+        }
+    }
+}
+
+
+bool check(int x, vector<int> order, int y, vector<int>& tar){
+    int sz = tar.size();
+    if(x == tar[0] && y == tar.back()){
+        bool flag = true;
+        for(int i=1;i<sz-1;i++){
+            if(order[i-1] != tar[i]){
+                flag = false;
+                break;
+            }
+        }
+        if(flag) return true;
+    }
+    reverse(ALL(order));
+    // y -> 
+    if(y == tar[0] && x == tar.back()){
+        bool flag = true;
+        for(int i=1;i<sz-1;i++){
+            if(order[i-1] != tar[i]){
+                flag = false;
+                break;
+            }
+        }
+        if(flag) return true;
+    }
+
+    return false;
+}
+
 void solve(){
+    int n;
+    cin >> n;
+    adj.resize(n);
+    deg.resize(n, 0); // 0: leaf, 1: connect, 2: joint
+    vis.resize(n, false);
+    joint_end.resize(n);
+    vector<int> joint;
+    int u, v;
+    for(int i=0;i<n-1;i++){
+        cin >> u >> v;
+        adj[u].pb(v);
+        adj[v].pb(u);
+        deg[u] ++;
+        deg[v] ++;
+    }
+    for(int i=0;i<n;i++){
+        if(deg[i] == 3) joint.push_back(i);
+    }
+    int jsz = joint.size();
+    
+    int m;
+    cin >> m;
+    vector<int> tar(m);
+    for(int i=0;i<m;i++){
+        cin >> tar[i];
+    }
+    if(jsz != m){
+        cout << "NO" << endl;
+        return;
+    }
+    dfs(-1, joint[0], 0);
+    int start, end;
+    start = end = -1;
+    for(auto i: joint){
+        if(joint_end[i].size() == 2){
+            if(start == -1) start = i;
+            else end = i;
+        }
+    }
+    debug(start, end);
+    debug(joint_end[start], joint_end[end]);
+    fill(ALL(vis), false);
+    vector<int> order;
+    dfs_order(order, start, start, end);
+    vector<int> cnt;
+    for(auto i: order){
+        assert(joint_end[i].size() == 1);
+        cnt.push_back(joint_end[i][0]);
+    }
+    debug(cnt);
+    for(int i=0;i<4;i++){
+        int x = joint_end[start][i & 1];
+        int y = joint_end[end][(i >> 1) & 1];
+        if(check(x, cnt, y, tar)){
+            cout << "YES" << endl;
+            return;
+        }
+    }
+    cout << "NO" << endl;
+
+    return;
+
     
 }
 
@@ -85,11 +218,11 @@ int main () {
     TIME(main);
     IOS();
     int t = 1;
-    cin >> t;
     while(t--){
         solve();
     }
 
     return 0;
 }
+
 
