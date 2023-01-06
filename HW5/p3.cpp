@@ -72,87 +72,12 @@ public:
 const ll MOD = 1000000007;
 const ll INF = 0x3f3f3f3f3f3f3f3f;
 const int iNF = 0x3f3f3f3f;
-const ll MAXN = 5005;
+const ll MAXN = 100005;
 
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
-
-class Edge{
-public:
-    int to, cap, rev;
-    Edge(int _to, int _cap, int _rev): to(_to), cap(_cap), rev(_rev) {}
-};
-
-vector<vector<Edge>> G(MAXN);
-vector<bool> vis(MAXN, false);
-
-
-void add_edge(int u, int v, int cap){
-    G[u].push_back(Edge(v, cap, G[v].size()));
-    G[v].push_back(Edge(u, 0, G[u].size()-1));
-}
-
-int dfs(int cur, int t, int f){
-    if(cur == t){
-        return f;
-    }
-    vis[cur] = true;
-    int cur_sz = G[cur].size();
-    for(int i=0;i<cur_sz;i++){
-        Edge& e = G[cur][i];
-        if(vis[e.to] == false && e.cap > 0){
-            int d = dfs(e.to, t, min(f, e.cap));
-            if(d > 0){
-                e.cap -= d;
-                G[e.to][e.rev].cap += d;
-                return d;
-            }
-        }
-    }
-    return 0;
-}
-
 void solve(){
-    int n, m, k;
-    cin >> n >> m >> k;
-    /**
-     * node 0: s
-     * node 5000: t
-     * node 1: tmp
-     * node 1001 ~ 1999: hero
-     * node 2001 ~ 2999: monster
-     * s -> tmp: n+k
-     * tmp -> heros: 2
-     * heros -> monster: 1
-     * monster -> t: 1
-     */
-    int q;
-    for(int i=1;i<=n;i++){
-        cin >> q;
-        int tmp;
-        while(q--){
-            cin >> tmp;
-            add_edge(1000+i, 2000+tmp, 1);
-        }
-    }
-    add_edge(0, 1, n+k);
-    for(int i=1;i<=n;i++){
-        add_edge(1, 1000+i, 2);
-    }
-    for(int i=1;i<=m;i++){
-        add_edge(2000+i, 5000, 1);
-    }
-    int ans = 0;
-    while(1){
-        fill(ALL(vis), false);
-        int f = dfs(0, 5000, iNF);
-        if(f == 0){
-            cout << ans << endl;
-            return;
-        }
-        ans += f;
-    }
-
+    
 }
 
 /********** Good Luck :) **********/
@@ -160,6 +85,7 @@ int main () {
     TIME(main);
     IOS();
     int t = 1;
+    cin >> t;
     while(t--){
         solve();
     }

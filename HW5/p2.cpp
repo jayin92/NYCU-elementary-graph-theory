@@ -72,87 +72,120 @@ public:
 const ll MOD = 1000000007;
 const ll INF = 0x3f3f3f3f3f3f3f3f;
 const int iNF = 0x3f3f3f3f;
-const ll MAXN = 5005;
+const ll MAXN = 100005;
 
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
+int n, m;
 
 class Edge{
 public:
-    int to, cap, rev;
-    Edge(int _to, int _cap, int _rev): to(_to), cap(_cap), rev(_rev) {}
+    int to, rev, flow, cap;
+    Edge(int _to, int _rev, int _flow, int _cap): to(_to), rev(_rev), flow(_flow), cap(_cap) {}
 };
 
-vector<vector<Edge>> G(MAXN);
-vector<bool> vis(MAXN, false);
-
-
-void add_edge(int u, int v, int cap){
-    G[u].push_back(Edge(v, cap, G[v].size()));
-    G[v].push_back(Edge(u, 0, G[u].size()-1));
-}
-
-int dfs(int cur, int t, int f){
-    if(cur == t){
-        return f;
+class Graph{
+public:
+    int v;
+    vector<int> level;
+    vector<vector<Edge>> adj;
+    vector<bool> vis;
+    Graph(int _v){
+        v = _v;
+        adj = vector<vector<Edge>>(v);
+        level = vector<int>(v);
     }
-    vis[cur] = true;
-    int cur_sz = G[cur].size();
-    for(int i=0;i<cur_sz;i++){
-        Edge& e = G[cur][i];
-        if(vis[e.to] == false && e.cap > 0){
-            int d = dfs(e.to, t, min(f, e.cap));
-            if(d > 0){
-                e.cap -= d;
-                G[e.to][e.rev].cap += d;
-                return d;
+
+    void addEdge(int x, int y, int cap){
+        Edge forward(y, adj[y].size(), 0, cap);
+        Edge backward(x, adj[x].size(), 0, 0);
+        adj[x].push_back(forward);
+        adj[y].push_back(backward);
+    }
+
+    bool bfs(int s, int t){
+        fill(level.begin(), level.end(), -1);
+        level[s] = 0;
+        queue<int> q;
+        q.push(s);
+        while(!q.empty()){
+            int cur = q.front();
+            q.pop();
+            for(auto &i: adj[cur]){
+                if(level[i.to] == -1 && i.flow < i.cap){
+                    level[i.to] = level[cur] + 1;
+                    q.push(i.to);
+                }
             }
         }
+
+        return level[t] != -1;
     }
-    return 0;
-}
+
+    int sendFlow(int u, int flow, int t, vector<int>& idx){
+        if(u == t) return flow;
+        for(; idx[u]<(int)adj[u].size();idx[u]++){
+            Edge& e = adj[u][idx[u]];
+
+            if(level[e.to] == level[u]+1 && e.flow < e.cap){
+                int cur_flow = min(flow, e.cap - e.flow);
+                int tmp_flow = sendFlow(e.to, cur_flow, t, idx);
+
+                if(tmp_flow > 0){
+                    e.flow += tmp_flow;
+                    adj[e.to][e.rev].flow -= tmp_flow;
+                    return tmp_flow;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    int dinic(int s, int t){
+        for(int i=0;i<v;i++){
+            for(Edge& j: adj[i]){
+                j.flow = 0;
+            }
+        }
+        if(s == t) return -1;
+        int total = 0;
+        while(bfs(s, t)){
+            vector<int> idx(v, 0);
+            while(int flow = sendFlow(s, iNF, t, idx)){
+                total += flow;
+            }
+        }
+
+        return total;
+    }
+};
 
 void solve(){
-    int n, m, k;
-    cin >> n >> m >> k;
-    /**
-     * node 0: s
-     * node 5000: t
-     * node 1: tmp
-     * node 1001 ~ 1999: hero
-     * node 2001 ~ 2999: monster
-     * s -> tmp: n+k
-     * tmp -> heros: 2
-     * heros -> monster: 1
-     * monster -> t: 1
-     */
-    int q;
+    cin >> n >> m;
+    Graph g(2*n+1);
+    int u, v;
     for(int i=1;i<=n;i++){
-        cin >> q;
-        int tmp;
-        while(q--){
-            cin >> tmp;
-            add_edge(1000+i, 2000+tmp, 1);
-        }
+        g.addEdge(i, n+i, 1);
+        // g.addEdge(n+i, i, 1);
     }
-    add_edge(0, 1, n+k);
+    for(int i=0;i<m;i++){
+        cin >> u >> v;
+        g.addEdge(v, n+u, 1);
+        g.addEdge(n+u, v, 1);
+
+        // g.addEdge(v, u, 1);
+        // g.addEdge(u, v, 1);
+    }
+    int ans = iNF;
     for(int i=1;i<=n;i++){
-        add_edge(1, 1000+i, 2);
-    }
-    for(int i=1;i<=m;i++){
-        add_edge(2000+i, 5000, 1);
-    }
-    int ans = 0;
-    while(1){
-        fill(ALL(vis), false);
-        int f = dfs(0, 5000, iNF);
-        if(f == 0){
-            cout << ans << endl;
-            return;
+        for(int j=1;j<=n;j++){
+            if(i != j)
+                ans = min(ans, g.dinic(i, j));
         }
-        ans += f;
     }
 
+    cout << ans << endl;
 }
 
 /********** Good Luck :) **********/
@@ -160,6 +193,7 @@ int main () {
     TIME(main);
     IOS();
     int t = 1;
+    // cin >> t;
     while(t--){
         solve();
     }
