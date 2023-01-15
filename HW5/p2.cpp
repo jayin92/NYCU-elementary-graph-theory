@@ -94,6 +94,7 @@ public:
         v = _v;
         adj = vector<vector<Edge>>(v);
         level = vector<int>(v);
+        vis = vector<bool>(v, false);
     }
 
     void addEdge(int x, int y, int cap){
@@ -165,17 +166,15 @@ void solve(){
     cin >> n >> m;
     Graph g(2*n+1);
     int u, v;
-    for(int i=1;i<=n;i++){
-        g.addEdge(i, n+i, 1);
-        // g.addEdge(n+i, i, 1);
-    }
+    // for(int i=1;i<=n;i++){
+    //     g.addEdge(i, n+i, 1);
+    //     g.addEdge(n+i, i, 1);
+    // }
     for(int i=0;i<m;i++){
         cin >> u >> v;
-        g.addEdge(v, n+u, 1);
-        g.addEdge(n+u, v, 1);
-
-        // g.addEdge(v, u, 1);
-        // g.addEdge(u, v, 1);
+        // g.addEdge(n+u, v, 1);
+        g.addEdge(v, u, 1);
+        g.addEdge(u, v, 1);
     }
     int ans = iNF;
     for(int i=1;i<=n;i++){
@@ -200,4 +199,3 @@ int main () {
 
     return 0;
 }
-
